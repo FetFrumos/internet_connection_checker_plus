@@ -104,7 +104,7 @@ class InternetConnection {
   late List<InternetCheckOption> _internetCheckOptions;
 
   /// The controller for the internet connection status stream.
-  final _statusController = StreamController<InternetStatus>.broadcast();
+  final _statusController = StreamController<InternetResult>.broadcast();
 
   /// The singleton instance of [InternetConnection].
   static final _instance = InternetConnection.createInstance();
@@ -184,11 +184,11 @@ class InternetConnection {
     _timerHandle?.cancel();
 
     final currentStatus = await internetStatus;
-
+    final currentResult = InternetResult(status: currentStatus, netResult: netList, );
     if (!_statusController.hasListener) return;
 
-    if (_lastStatus != currentStatus && _statusController.hasListener) {
-      _statusController.add(currentStatus);
+    if (_lastStatus != currentResult && _statusController.hasListener) {
+      _statusController.add(currentResult);
     }
 
     _timerHandle = Timer(checkInterval, () {
@@ -216,7 +216,7 @@ class InternetConnection {
   InternetResult? get lastTryResults => _lastStatus;
 
   /// Stream that emits internet connection status changes.
-  Stream<InternetStatus> get onStatusChange => _statusController.stream;
+  Stream<InternetResult> get onStatusChange => _statusController.stream;
 
   /// Connectivity subscription.
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
