@@ -228,7 +228,7 @@ class InternetConnection {
   void _startListeningToConnectivityChanges() {
     if (_connectivitySubscription != null) return;
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
-      (_) {
+      (state) {
         if (_statusController.hasListener) {
           _maybeEmitStatusUpdate();
         }
