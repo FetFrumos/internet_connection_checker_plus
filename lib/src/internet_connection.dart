@@ -84,7 +84,9 @@ class InternetConnection {
       if (customCheckOptions != null) ...customCheckOptions,
     ];
 
-    _statusController.onListen = _maybeEmitStatusUpdate;
+    _statusController.onListen = () {
+      _maybeEmitStatusUpdate([]);
+    };
     _statusController.onCancel = _handleStatusChangeCancel;
   }
 
@@ -113,7 +115,7 @@ class InternetConnection {
   final Duration checkInterval;
 
   /// The last known internet connection status result.
-  InternetStatus? _lastStatus;
+  InternetResult? _lastStatus;
 
   /// The handle for the timer used for periodic status checks.
   Timer? _timerHandle;
@@ -126,9 +128,7 @@ class InternetConnection {
     InternetCheckOption option,
   ) async {
     try {
-      final response = await http
-          .head(option.uri, headers: option.headers)
-          .timeout(option.timeout);
+      final response = await http.head(option.uri, headers: option.headers).timeout(option.timeout);
 
       return InternetCheckResult(
         option: option,
@@ -174,14 +174,12 @@ class InternetConnection {
   ///
   /// Returns a [Future] that completes with the [InternetStatus] indicating
   /// the current internet connection status.
-  Future<InternetStatus> get internetStatus async => await hasInternetAccess
-      ? InternetStatus.connected
-      : InternetStatus.disconnected;
+  Future<InternetStatus> get internetStatus async => await hasInternetAccess ? InternetStatus.connected : InternetStatus.disconnected;
 
   /// Internal method for emitting status updates.
   ///
   /// Updates the status and emits it if there are listeners.
-  Future<void> _maybeEmitStatusUpdate() async {
+  Future<void> _maybeEmitStatusUpdate(List<ConnectivityResult> netList) async {
     _startListeningToConnectivityChanges();
     _timerHandle?.cancel();
 
@@ -193,9 +191,11 @@ class InternetConnection {
       _statusController.add(currentStatus);
     }
 
-    _timerHandle = Timer(checkInterval, _maybeEmitStatusUpdate);
+    _timerHandle = Timer(checkInterval, () {
+      _maybeEmitStatusUpdate([]);
+    });
 
-    _lastStatus = currentStatus;
+    _lastStatus = InternetResult(netResult: netList, status: currentStatus);
   }
 
   /// Handles cancellation of status change events.
@@ -213,7 +213,7 @@ class InternetConnection {
   }
 
   /// The result of the last attempt to check the internet status.
-  InternetStatus? get lastTryResults => _lastStatus;
+  InternetResult? get lastTryResults => _lastStatus;
 
   /// Stream that emits internet connection status changes.
   Stream<InternetStatus> get onStatusChange => _statusController.stream;
@@ -228,9 +228,9 @@ class InternetConnection {
   void _startListeningToConnectivityChanges() {
     if (_connectivitySubscription != null) return;
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
-      (state) {
+      (netList) {
         if (_statusController.hasListener) {
-          _maybeEmitStatusUpdate();
+          _maybeEmitStatusUpdate(netList);
         }
       },
     );
