@@ -1,7 +1,5 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:equatable/equatable.dart';
+part of '../internet_connection_checker_plus.dart';
 
-import '../internet_connection_checker_plus.dart';
 
 class InternetResult extends Equatable {
   final List<ConnectivityResult> netResult;

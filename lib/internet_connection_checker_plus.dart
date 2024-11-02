@@ -65,11 +65,12 @@ import 'dart:async';
 // Third Party Packages
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
+import 'package:equatable/equatable.dart';
 
-import 'src/internet_result.dart';
 
 // Package Files
 part 'src/internet_check_option.dart';
 part 'src/internet_check_result.dart';
 part 'src/internet_connection.dart';
 part 'src/internet_status.dart';
+part 'src/internet_result.dart';
